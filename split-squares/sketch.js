@@ -16,6 +16,8 @@ const options = {
   offset: 3,
   minArea: 140,
   stopSplitting: true,
+  addSomeColor: true,
+  areaThresholdForColorizing: 3000,
   invertFill: false,
   fill: false,
   restart: function () {
@@ -52,10 +54,34 @@ folder1.add(options, 'offset', 1, 10, 1);
 folder1.add(options, 'minArea', 10, 800, 20);
 folder1.add(options, 'stopSplitting', true, false);
 folder1.add(options, 'fill', true, false);
+folder1.add(options, 'addSomeColor', true, false);
+folder1.add(options, 'areaThresholdForColorizing', 1, 100000);
 folder1.add(options, 'invertFill', true, false);
 folder1.open();
 gui.add(options, 'restart');
 gui.add(options, 'save');
+
+var rects = [];
+var colors = [];
+
+function getColor(position) {
+  var x = position.x;
+  var y = height - position.y;
+  var maxDistance = Math.sqrt(height * height + width * width);
+  var distance = Math.sqrt(x * x + y * y);
+  var percentFromCorner = distance / maxDistance;
+  //var percentFromTop = position.y / height;
+  //var partialIndex = percentFromTop * colors.length;
+  var partialIndex = percentFromCorner * colors.length;
+  var maxIndex = colors.length - 1;
+  var lowerIndex = Math.min(maxIndex, Math.max(0, Math.floor(partialIndex)));
+  var upperIndex = Math.max(0, Math.min(maxIndex, Math.ceil(partialIndex)));
+  var amt = partialIndex - lowerIndex; // map to 0 - 1
+  
+  var c1 = colors[lowerIndex];
+  var c2 = colors[upperIndex];
+  return lerpColor(c1, c2, amt);
+}
 
 class Rect {
   constructor(a1, a2, a3, a4, neverSplit = false) {
@@ -68,7 +94,13 @@ class Rect {
   }
 
   draw() {
-    if (options.fill) {
+    if (options.addSomeColor) {
+      if (this.area() < options.areaThresholdForColorizing) {
+        fill(getColor(this.a1));
+      } else {
+        fill(0, 0, 100);
+      }
+    } else if (options.fill) {
       if (options.invertFill) {
         fill(100, 0, 100);
       } else {
@@ -125,10 +157,7 @@ class Rect {
       return true;
     }
 
-    var w = p5.Vector.sub(this.a2, this.a1);
-    var h = p5.Vector.sub(this.a4, this.a1);
-    var area = w.x * h.y;
-
+    var area = this.area();
     var stopSplitting = random(0, 100) > 80;
     if (stopSplitting) {
       this.neverSplit = true;
@@ -140,6 +169,12 @@ class Rect {
       this.neverSplit = true;
     }
     return shouldSplit;
+  }
+
+  area() {var w = p5.Vector.sub(this.a2, this.a1);
+    var h = p5.Vector.sub(this.a4, this.a1);
+    var area = w.x * h.y;
+    return area;
   }
 
   shouldSplitHorizontally() {
@@ -155,12 +190,22 @@ class Rect {
   }
 }
 
-var rects = [];
-
 function setup() {
   startupParameters.resizeCanvas();
   options.restart();
   colorMode(HSB, 360, 100, 100);
+  colors = [
+    color(56, 19, 98),
+    color(27, 18, 99),
+    color(356, 19, 100),
+    color(311, 20, 95),
+    color(263, 23, 94),
+    color(215, 33, 95),
+    color(195, 41, 96), 
+    color(185, 42, 96),
+    color(167, 38, 96),
+    color(126, 26, 98)
+  ];
 }
 
 var count = 0;
