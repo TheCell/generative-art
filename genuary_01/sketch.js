@@ -25,7 +25,7 @@ const startupParameters = {
 const options = {
   background: '#76a8d4',
   foreground: '#383d2a',
-  asciinize: true,
+  Asciify: true,
   restart: function () {
     seed = Math.random() * 100000;
     randomSeed(seed);
@@ -56,7 +56,7 @@ folder1.addColor(options, 'background');
 folder1.addColor(options, 'foreground');
 folder1.add(startupParameters, 'fontSize', 0, 100, 1);
 folder1.open();
-gui.add(options, 'asciinize');
+gui.add(options, 'Asciify');
 gui.add(options, 'restart');
 gui.add(options, 'save');
 
@@ -71,7 +71,7 @@ let speed = 0.05;
 function draw() {
   textFont('monospace', startupParameters.fontSize);
 
-  if (options.asciinize) {
+  if (options.Asciify) {
     background(options.background);
     gfx.background(color(0,0,0));
     gfx.fill(color(255, 255, 255));
@@ -90,7 +90,7 @@ function draw() {
   currentX++;
   currentX =  currentX % startupParameters.asciiXSize;
   
-  if (options.asciinize) {
+  if (options.Asciify) {
     ascii_arr = asciiInstance.convert(gfx);
     asciiInstance.typeArray2d(ascii_arr, this);
   } else {
