@@ -1,5 +1,4 @@
-let gfx, seed, asciiInstance, cyclic_t;
-let currentX = 0;
+let gfx, seed, asciiInstance, system;
 
 const startupParameters = {
   xSize: 600,
@@ -23,14 +22,15 @@ const startupParameters = {
 }
 
 const options = {
-  background: '#76a8d4',
-  foreground: '#383d2a',
+  background: '#3b3c4a',
+  foreground: '#e6494f',
   Asciify: true,
   restart: function () {
     seed = Math.random() * 100000;
     randomSeed(seed);
     gfx.reset();
     gfx.background(options.background);
+    system = new ParticleSystem(createVector(startupParameters.asciiXSize / 2, 10));
   },
   save: function () {
     saveCanvas(`${new Date().getFullYear()}_Genuary02_seed-${seed}_date-${Date.now()}`, 'png');
@@ -60,6 +60,8 @@ gui.add(options, 'Asciify');
 gui.add(options, 'restart');
 gui.add(options, 'save');
 
+let counter = 0;
+let saveFrame = true;
 function setup() {
   startupParameters.resizeCanvas(this);
   options.restart();
@@ -81,14 +83,8 @@ function draw() {
   }
   fill(options.foreground);
 
-  let x = startupParameters.asciiXSize/2 + cos(angle) * 10;
-  let y = startupParameters.asciiYSize/2 + sin(angle) * 10;
-  gfx.ellipse(x, y, 10, 10);
-
-  angle += speed;
-  angle = angle % (Math.PI * 2);
-  currentX++;
-  currentX =  currentX % startupParameters.asciiXSize;
+  system.addParticle();
+  system.run(gfx);
   
   if (options.Asciify) {
     ascii_arr = asciiInstance.convert(gfx);
@@ -96,6 +92,13 @@ function draw() {
   } else {
     image(gfx, 0, 0, startupParameters.xSize, startupParameters.ySize);
   }
+
+  if (counter < 120 && saveFrame) {
+    counter++;
+    // saveCanvas(`${new Date().getFullYear()}_Genuary02_seed-${seed}_date-${Date.now()}`, 'png');
+  }
+
+  saveFrame != saveFrame;
 }
 
 function onFileSelected() {
@@ -165,3 +168,56 @@ typeArray2d = function(_arr2d, _dst, _x, _y, _w, _h) {
         offset_y + temp_y * dist_ver
       );
 }
+
+
+// A simple Particle class
+let Particle = function(position) {
+  this.acceleration = createVector(0, 0.05);
+  this.velocity = createVector(random(-1, 1), random(-1, 0));
+  this.size = Math.random() * 5;
+  this.position = position.copy();
+  this.lifespan = 255;
+};
+
+Particle.prototype.run = function(graphics) {
+  this.update();
+  this.display(graphics);
+};
+
+// Method to update position
+Particle.prototype.update = function(){
+  this.velocity.add(this.acceleration);
+  this.position.add(this.velocity);
+  this.lifespan -= 2;
+};
+
+// Method to display
+Particle.prototype.display = function(graphics) {
+  graphics.noStroke();
+  graphics.fill(255, this.lifespan);
+  graphics.ellipse(this.position.x, this.position.y, this.size , this.size);
+};
+
+// Is the particle still useful?
+Particle.prototype.isDead = function(){
+  return this.lifespan < 0;
+};
+
+let ParticleSystem = function(position) {
+  this.origin = position.copy();
+  this.particles = [];
+};
+
+ParticleSystem.prototype.addParticle = function() {
+  this.particles.push(new Particle(this.origin));
+};
+
+ParticleSystem.prototype.run = function(graphics) {
+  for (let i = this.particles.length-1; i >= 0; i--) {
+    let p = this.particles[i];
+    p.run(graphics);
+    if (p.isDead()) {
+      this.particles.splice(i, 1);
+    }
+  }
+};
