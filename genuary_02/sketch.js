@@ -1,4 +1,6 @@
 let gfx, seed, asciiInstance, system;
+let counter = 0;
+let saveFrame = true;
 
 const startupParameters = {
   xSize: 600,
@@ -60,8 +62,6 @@ gui.add(options, 'Asciify');
 gui.add(options, 'restart');
 gui.add(options, 'save');
 
-let counter = 0;
-let saveFrame = true;
 function setup() {
   startupParameters.resizeCanvas(this);
   options.restart();
@@ -93,9 +93,9 @@ function draw() {
     image(gfx, 0, 0, startupParameters.xSize, startupParameters.ySize);
   }
 
-  if (counter < 120 && saveFrame) {
+  if (counter < 240 && saveFrame) {
+    // saveCanvas(`${new Date().getFullYear()}_Genuary02_seed-${seed}_frame${counter}`, 'png');
     counter++;
-    // saveCanvas(`${new Date().getFullYear()}_Genuary02_seed-${seed}_date-${Date.now()}`, 'png');
   }
 
   saveFrame != saveFrame;
