@@ -5,6 +5,9 @@ const startupParameters = {
   ySize: 600,
   resizeCanvas: function() {
     createCanvas(startupParameters.xSize, startupParameters.ySize);
+    frameRate(60);
+    pixelDensity(1);
+    
     gfx = createGraphics(startupParameters.xSize, startupParameters.ySize)
     gfx.background(options.background);
   }
@@ -20,7 +23,7 @@ const options = {
     gfx.background(options.background);
   },
   save: function () {
-    saveCanvas('Example_seed-' + seed + '_date-' + Date.now(), 'png');
+    saveCanvas(`${new Date().getFullYear()}_seed-${seed}_date-${Date.now()}`, 'png');
   },
   loadImage: function() {
     document.getElementById('fileselector').click();
