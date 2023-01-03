@@ -31,8 +31,9 @@ const startupParameters = {
 }
 
 const options = {
-  background: '#3b3c4a',
-  foreground: '#e6494f',
+  background: '#404753',
+  foreground: '#cbdccd',
+  glitchColor: '#fbdc87',
   Asciify: true,
   noiseDetail: 8,
   noiseFallOff: 0.71,
@@ -55,7 +56,7 @@ const options = {
 
 // start with a random seed
 options.seed = Math.floor(Math.random() * 100000);
-// options.seed = 59989;
+options.seed = 84682;
 
 // Creating a GUI with options.
 var gui = new dat.GUI({name: 'Customization'});
@@ -71,6 +72,7 @@ gui.remember(options);
 folder1.add(options, 'loadImage');
 folder1.addColor(options, 'background');
 folder1.addColor(options, 'foreground');
+folder1.addColor(options, 'glitchColor');
 folder1.add(startupParameters, 'fontSize', 0, 100, 1);
 folder1.add(options, 'noiseDetail', 0, 16, 1).onChange(function() {
   options.restart();
@@ -95,8 +97,6 @@ function preload() {
   newFont = loadFont('./../_libs/fonts/KenPixel Mini.ttf', () => {
     fontLoaded = true;
   });
-
-  textFont('monospace', startupParameters.fontSize);
 }
 
 function setup() {
@@ -168,6 +168,49 @@ function mainDrawPart() {
       gfx.stroke(noiseVal * 255);
       gfx.point(x, y);
     }
+  }
+  
+  moveNoiseFallOff();
+}
+
+let countUp = true;
+function moveNoiseFallOff() {
+  if (countUp) {
+    options.noiseFallOff += 0.01;
+  } else {
+    options.noiseFallOff -= 0.01;
+  }
+
+  if (options.noiseFallOff < 0) {
+    options.noiseFallOff = 0;
+    countUp = !countUp;
+  }
+  if (options.noiseFallOff > 1) {
+    options.noiseFallOff = 1;
+    countUp = !countUp;
+  }
+
+  randomlyGlitch();
+}
+
+let savedValueDuringGlitch;
+let glitchValue;
+let isGlitching = false;
+function randomlyGlitch() {
+  if (isGlitching) {
+    options.noiseFallOff = glitchValue;
+    fill(options.glitchColor);
+    return;
+  }
+
+  if (Math.random() > 0.99) {
+    savedValueDuringGlitch = options.noiseFallOff;
+    glitchValue = random(0, 1);
+    isGlitching = true;
+    window.setTimeout(() => {
+      isGlitching = false;
+      options.noiseFallOff = savedValueDuringGlitch
+    }, random(100, 200))
   }
 }
 
