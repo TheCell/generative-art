@@ -56,7 +56,7 @@ const options = {
 
 // start with a random seed
 options.seed = Math.floor(Math.random() * 100000);
-options.seed = 84682;
+// options.seed = 84682;
 
 // Creating a GUI with options.
 var gui = new dat.GUI({name: 'Customization'});
@@ -205,7 +205,8 @@ function randomlyGlitch() {
 
   if (Math.random() > 0.99) {
     savedValueDuringGlitch = options.noiseFallOff;
-    glitchValue = random(0, 1);
+    // glitchValue = random(0, 1);
+    glitchValue = options.noiseFallOff;
     isGlitching = true;
     window.setTimeout(() => {
       isGlitching = false;
