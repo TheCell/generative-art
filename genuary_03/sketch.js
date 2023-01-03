@@ -1,4 +1,4 @@
-let gfx, seed, asciiInstance;
+let gfx, asciiInstance;
 let counter = 0;
 let saveFrame = true;
 let newFont;
@@ -6,21 +6,24 @@ let noiseVal;
 let noiseScale = 0.02;
 let randomX;
 let randomY;
+let fontLoaded = false;
+let thisReference;
 
 const startupParameters = {
   xSize: 600,
   ySize: 600,
   asciiXSize: 40,
   asciiYSize: 40,
-  fontSize: 12,
-  resizeCanvas: function(_sketch) {
+  fontSize: 16,
+  resizeCanvas: function() {
     createCanvas(startupParameters.xSize, startupParameters.ySize);
     frameRate(60);
     pixelDensity(1);
 
     gfx = createGraphics(startupParameters.asciiXSize, startupParameters.asciiYSize)
     gfx.noStroke();
-    asciiInstance = new AsciiArt(_sketch);
+    asciiInstance = new AsciiArt(thisReference);
+    
     // asciiInstance.printWeightTable();
     textAlign(CENTER, CENTER);
     textStyle(NORMAL);
@@ -33,15 +36,9 @@ const options = {
   Asciify: true,
   noiseDetail: 8,
   noiseFallOff: 0.71,
-  seed: 321123,
-  useFixedNoise: false,
+  seed: 1,
   restart: function () {
-    if (options.useFixedNoise) {
-      seed = options.seed;
-    } else {
-      seed = Math.floor(Math.random() * 100000);
-    }
-    randomSeed(seed);
+    randomSeed(options.seed);
 
     gfx.reset();
     gfx.background(options.background);
@@ -55,6 +52,10 @@ const options = {
     document.getElementById('fileselector').click();
   }
 }
+
+// start with a random seed
+options.seed = Math.floor(Math.random() * 100000);
+// options.seed = 59989;
 
 // Creating a GUI with options.
 var gui = new dat.GUI({name: 'Customization'});
@@ -78,14 +79,7 @@ folder1.add(options, 'noiseFallOff', 0, 1).onChange(function() {
   options.restart();
 });
 folder1.add(options, 'seed', 0, 100000, 1).onChange(function() {
-  if (options.useFixedNoise) {
-    options.restart();
-  }
-});
-folder1.add(options, 'useFixedNoise').onChange(function() {
-  if (options.useFixedNoise) {
-    options.restart();
-  }
+  options.restart();
 });
 
 folder1.open();
@@ -94,17 +88,31 @@ gui.add(options, 'restart');
 gui.add(options, 'save');
 
 function preload() {
-  newFont = loadFont('../_libs/fonts/KenPixel Mini.ttf');
-  // newFont = loadFont('../_libs/fonts/QuinqueFive.ttf');
+  newFont = loadFont('./../_libs/fonts/QuinqueFive.ttf', () => {
+    fontLoaded = true;
+  });
+
+  newFont = loadFont('./../_libs/fonts/KenPixel Mini.ttf', () => {
+    fontLoaded = true;
+  });
+
+  textFont('monospace', startupParameters.fontSize);
 }
 
 function setup() {
-  startupParameters.resizeCanvas(this);
+  thisReference = this;
+  startupParameters.resizeCanvas();
+
   options.restart();
 }
 
 function draw() {
-  textFont(newFont, startupParameters.fontSize);
+  if (fontLoaded) {
+    // I don't think that works
+    textFont(newFont, startupParameters.fontSize);
+  } else {
+    textFont('monospace', startupParameters.fontSize);
+  }
 
   if (options.Asciify) {
     background(options.background);
@@ -148,7 +156,7 @@ function onImageLoaded(image) {
 
 function mainDrawPart() {
   gfx.noiseDetail(options.noiseDetail, options.noiseFallOff);
-  noiseSeed(seed);
+  noiseSeed(options.seed);
 
   for (let y = 0; y < startupParameters.asciiYSize; y++) {
     for (let x = 0; x < startupParameters.asciiYSize; x++) {
