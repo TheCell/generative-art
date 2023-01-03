@@ -33,10 +33,10 @@ const startupParameters = {
 const options = {
   background: '#404753',
   foreground: '#cbdccd',
-  glitchColor: '#fbdc87',
+  glitchColor: '#ff4743',
   Asciify: true,
   noiseDetail: 8,
-  noiseFallOff: 0.71,
+  noiseFallOff: 0,
   seed: 1,
   restart: function () {
     randomSeed(options.seed);
@@ -133,12 +133,12 @@ function draw() {
     image(gfx, 0, 0, startupParameters.xSize, startupParameters.ySize);
   }
 
-  if (counter < 240 && saveFrame) {
-    // saveCanvas(`${new Date().getFullYear()}_Genuary02_seed-${options.seed}_frame${counter}`, 'png');
-    counter++;
+  if (counter < 200 && saveFrame) {
+    // saveCanvas(`${new Date().getFullYear()}_Genuary03_seed-${options.seed}_frame${counter}`, 'png');
   }
+  counter++;
 
-  saveFrame != saveFrame;
+  // saveFrame != saveFrame;
 }
 
 function onFileSelected() {
@@ -176,9 +176,9 @@ function mainDrawPart() {
 let countUp = true;
 function moveNoiseFallOff() {
   if (countUp) {
-    options.noiseFallOff += 0.01;
+    options.noiseFallOff += 0.02;
   } else {
-    options.noiseFallOff -= 0.01;
+    options.noiseFallOff -= 0.02;
   }
 
   if (options.noiseFallOff < 0) {
@@ -196,22 +196,26 @@ function moveNoiseFallOff() {
 let savedValueDuringGlitch;
 let glitchValue;
 let isGlitching = false;
+let firstClitchFrame;
 function randomlyGlitch() {
   if (isGlitching) {
-    options.noiseFallOff = glitchValue;
+    // options.noiseFallOff = glitchValue;
     fill(options.glitchColor);
+    if (firstClitchFrame + 7 < counter) {
+      isGlitching = false;
+    }
     return;
   }
 
   if (Math.random() > 0.99) {
     savedValueDuringGlitch = options.noiseFallOff;
-    // glitchValue = random(0, 1);
-    glitchValue = options.noiseFallOff;
+    glitchValue = random(0, 1);
+    firstClitchFrame = counter;
     isGlitching = true;
-    window.setTimeout(() => {
-      isGlitching = false;
-      options.noiseFallOff = savedValueDuringGlitch
-    }, random(100, 200))
+    // window.setTimeout(() => {
+    //   isGlitching = false;
+    //   options.noiseFallOff = savedValueDuringGlitch
+    // }, random(100, 100))
   }
 }
 
