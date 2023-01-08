@@ -28,8 +28,10 @@ const startupParameters = {
 }
 
 const options = {
-  background: '#414659',
-  foreground: '#bcc986',
+  background: '#303131',
+  foreground: '#dedede',
+  asciiColor: '#c5c5c5',
+  asciiBackground: '#000000',
   asciify: true,
   showPixelated: false,
   noiseDetail: 8,
@@ -62,6 +64,8 @@ var folder1 = gui.addFolder('Setup options');
 gui.remember(options);
 folder1.addColor(options, 'background');
 folder1.addColor(options, 'foreground');
+folder1.addColor(options, 'asciiColor');
+folder1.addColor(options, 'asciiBackground');
 folder1.add(startupParameters, 'fontSize', 0, 50, 1).onChange(() => {
   textSize(startupParameters.fontSize);
 });
@@ -107,7 +111,7 @@ function draw() {
 let angle = 0;
 let speed = Math.PI / 32;
 function prepareGfxCanvas() {
-  gfx.background(options.asciify ? color(0) : options.background);
+  gfx.background(options.background);
   gfx.fill(options.foreground);
   gfx.noStroke();
 
@@ -139,7 +143,6 @@ function drawOrOverdrawAsAscii() {
     return;
   }
   
-  gfx2canvas.image(gfx3d, 0, 0, startupParameters.xSize, startupParameters.ySize);
   // gfx2canvas.filter(THRESHOLD);
   gfx2canvas.filter(GRAY);
   // gfx2canvas.filter(POSTERIZE, 3);
@@ -150,8 +153,8 @@ function drawOrOverdrawAsAscii() {
   if (options.showPixelated) { // canvas that is used to turn into ascii art
     image(gfx2ascii, 0, 0, startupParameters.xSize, startupParameters.ySize);
   } else {
-    fill(options.foreground);
-    background(options.background);
+    fill(options.asciiColor);
+    background(options.asciiBackground);
 
     ascii_arr = asciiInstance.convert(gfx2ascii);
     asciiInstance.typeArray2d(ascii_arr, this);
