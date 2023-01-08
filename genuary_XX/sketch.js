@@ -125,9 +125,9 @@ function prepareGfx3dCanvas() {
   gfx3d.strokeWeight(0);
   gfx3d.torus(100, startupParameters.xSize / 15);
   gfx3d.reset();
-  gfx3d.rotateY(speed);
-  gfx3d.rotateX(speed);
-  gfx3d.rotateZ(speed);
+  gfx3d.rotateY(angle);
+  gfx3d.rotateX(angle);
+  gfx3d.rotateZ(angle);
 }
 
 function drawOrOverdrawAsAscii() {
