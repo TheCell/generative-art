@@ -167,16 +167,6 @@ function saveAllFrames() {
     return;
   }
 
-  if (frameCount > 40) {
-    options.showPixelated = true;
-    options.asciify = true;
-  }
-
-  if (frameCount > 80) {
-    options.showPixelated = true;
-    options.asciify = false;
-  }
-
-  // frameRate(5);
-  // saveCanvas(`${new Date().getFullYear()}_Genuary${genuaryNr}_seed-${options.seed}_frame-${frameCount}`, 'png');
+  frameRate(5);
+  saveCanvas(`${new Date().getFullYear()}_Genuary${genuaryNr}_seed-${options.seed}_frame-${frameCount}`, 'png');
 }
