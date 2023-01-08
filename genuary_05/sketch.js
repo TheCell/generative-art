@@ -31,7 +31,6 @@ const options = {
   foreground: '#bcc986',
   asciify: true,
   showPixelated: false,
-  displaySmoothed: true,
   noiseDetail: 8,
   noiseFallOff: 0.7,
   seed: 1,
@@ -40,13 +39,6 @@ const options = {
 
     gfx.reset();
     gfx.background(options.background);
-  },
-  setSmoothing: function () {
-    ctx = canvas.getContext('2d');
-    ctx.mozImageSmoothingEnabled = options.displaySmoothed;
-    ctx.webkitImageSmoothingEnabled = options.displaySmoothed;
-    ctx.msImageSmoothingEnabled = options.displaySmoothed;
-    ctx.imageSmoothingEnabled = options.displaySmoothed;
   },
   save: function () {
     saveCanvas(`${new Date().getFullYear()}_Genuary05_seed-${options.seed}_date-${Date.now()}`, 'png');
@@ -85,11 +77,6 @@ folder1.add(options, 'seed', 0, 100000, 1).onChange(() => {
 folder1.open();
 gui.add(options, 'asciify');
 gui.add(options, 'showPixelated');
-gui.add(options, 'displaySmoothed').onChange(() => {
-  // startupParameters.resizeCanvas();
-  // thisReference.setup();
-  options.setSmoothing();
-});
 gui.add(options, 'restart');
 gui.add(options, 'save');
 
@@ -103,7 +90,6 @@ function setup() {
   thisReference = this;
   startupParameters.resizeCanvas();
   options.restart();
-  options.setSmoothing();
   textFont('QuinqueFive', startupParameters.fontSize);
   textStyle(NORMAL);
   textAlign(CENTER, CENTER);
