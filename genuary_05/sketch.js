@@ -22,7 +22,7 @@ const startupParameters = {
     gfx3d = createGraphics(startupParameters.xSize, startupParameters.ySize, WEBGL); // extra 2d graphics
     gfx2canvas = createGraphics(startupParameters.xSize, startupParameters.ySize, P2D); // graphics combinind all others and combining with ascii
     gfx2ascii = createGraphics(startupParameters.asciiXSize, startupParameters.asciiYSize, P2D); // graphics combinind all others and combining with ascii
-    asciiInstance = new AsciiArt(thisReference);
+    asciiInstance = new AsciiArt(thisReference, 'monospace', startupParameters.fontSize);
     // gfx = createGraphics(startupParameters.asciiXSize, startupParameters.asciiYSize); // extra 2d graphics
     // gfx.noStroke();
     // asciiInstance = new AsciiArt(thisReference);
@@ -34,8 +34,8 @@ const startupParameters = {
 }
 
 const options = {
-  background: '#404753',
-  foreground: '#cbdccd',
+  background: '#414659',
+  foreground: '#bcc986',
   asciify: true,
   noiseDetail: 8,
   noiseFallOff: 0.7,
@@ -123,8 +123,7 @@ function prepareGfxCanvas() {
 function prepareGfx3dCanvas() {
   gfx3d.clear();
   gfx3d.fill(options.foreground);
-  gfx3d.stroke(color(0));
-  gfx3d.strokeWeight(1);
+  gfx3d.strokeWeight(0);
   gfx3d.torus(100, startupParameters.xSize / 15);
   gfx3d.rotateY(speed);
   gfx3d.rotateX(speed);
@@ -143,6 +142,7 @@ function drawOrOverdrawAsAscii() {
   gfx2canvas.image(gfx3d, 0, 0, startupParameters.xSize, startupParameters.ySize);
   // gfx2canvas.filter(THRESHOLD);
   gfx2canvas.filter(GRAY);
+  // gfx2canvas.filter(POSTERIZE, 3);
 
   // copy full image to ascii mini canvas
   gfx2ascii.image(gfx2canvas, 0, 0, startupParameters.asciiXSize, startupParameters.asciiYSize); // copy combined image to the ascii frame to process further
@@ -152,6 +152,10 @@ function drawOrOverdrawAsAscii() {
   } else {
     fill(options.foreground);
     background(options.background);
+    textFont('monospace', startupParameters.fontSize);
+    textStyle(NORMAL);
+    textAlign(CENTER, CENTER);
+
     ascii_arr = asciiInstance.convert(gfx2ascii);
     asciiInstance.typeArray2d(ascii_arr, this);
   }
