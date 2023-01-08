@@ -101,6 +101,7 @@ function draw() {
   prepareGfxCanvas();
   prepareGfx3dCanvas();
   drawOrOverdrawAsAscii();
+  // saveAllFrames();
 }
 
 let angle = 0;
@@ -154,4 +155,26 @@ function drawOrOverdrawAsAscii() {
     ascii_arr = asciiInstance.convert(gfx2ascii);
     asciiInstance.typeArray2d(ascii_arr, this);
   }
+}
+
+let count = 0;
+let saveUntilcount = 125;
+function saveAllFrames() {
+  if (count > saveUntilcount) {
+    return;
+  }
+  
+  if (count > 40) {
+    options.showPixelated = true;
+    options.asciify = false;
+  }
+
+  if (count > 80) {
+    options.showPixelated = true;
+    options.asciify = true;
+  }
+
+  frameRate(5);
+  saveCanvas(`${new Date().getFullYear()}_Genuary${genuaryNr}_seed-${options.seed}_frame-${count}`, 'png');
+  count++;
 }
