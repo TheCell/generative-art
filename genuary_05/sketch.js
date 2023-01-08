@@ -1,4 +1,4 @@
-let gfx, gfx3d, gfx2canvas, asciiInstance;
+let canvas, gfx, gfx3d, gfx2canvas, asciiInstance;
 let counter = 0;
 let saveFrame = true;
 let newFont;
@@ -12,9 +12,9 @@ const startupParameters = {
   ySize: 600,
   asciiXSize: 40,
   asciiYSize: 40,
-  fontSize: 16,
+  fontSize: 8,
   resizeCanvas: function() {
-    createCanvas(startupParameters.xSize, startupParameters.ySize);
+    canvas = createCanvas(startupParameters.xSize, startupParameters.ySize).elt;
     frameRate(60);
     pixelDensity(1);
 
@@ -22,14 +22,7 @@ const startupParameters = {
     gfx3d = createGraphics(startupParameters.xSize, startupParameters.ySize, WEBGL); // extra 2d graphics
     gfx2canvas = createGraphics(startupParameters.xSize, startupParameters.ySize, P2D); // graphics combinind all others and combining with ascii
     gfx2ascii = createGraphics(startupParameters.asciiXSize, startupParameters.asciiYSize, P2D); // graphics combinind all others and combining with ascii
-    asciiInstance = new AsciiArt(thisReference, 'monospace', startupParameters.fontSize);
-    // gfx = createGraphics(startupParameters.asciiXSize, startupParameters.asciiYSize); // extra 2d graphics
-    // gfx.noStroke();
-    // asciiInstance = new AsciiArt(thisReference);
-    
-    // asciiInstance.printWeightTable();
-    // gfx.textAlign(CENTER, CENTER);
-    // gfx.textStyle(NORMAL);
+    asciiInstance = new AsciiArt(thisReference);
   }
 }
 
@@ -37,6 +30,8 @@ const options = {
   background: '#414659',
   foreground: '#bcc986',
   asciify: true,
+  showPixelated: false,
+  displaySmoothed: true,
   noiseDetail: 8,
   noiseFallOff: 0.7,
   seed: 1,
@@ -45,6 +40,13 @@ const options = {
 
     gfx.reset();
     gfx.background(options.background);
+  },
+  setSmoothing: function () {
+    ctx = canvas.getContext('2d');
+    ctx.mozImageSmoothingEnabled = options.displaySmoothed;
+    ctx.webkitImageSmoothingEnabled = options.displaySmoothed;
+    ctx.msImageSmoothingEnabled = options.displaySmoothed;
+    ctx.imageSmoothingEnabled = options.displaySmoothed;
   },
   save: function () {
     saveCanvas(`${new Date().getFullYear()}_Genuary05_seed-${options.seed}_date-${Date.now()}`, 'png');
@@ -67,36 +69,45 @@ var folder1 = gui.addFolder('Setup options');
 gui.remember(options);
 folder1.addColor(options, 'background');
 folder1.addColor(options, 'foreground');
-folder1.add(startupParameters, 'fontSize', 0, 100, 1);
-folder1.add(options, 'noiseDetail', 0, 16, 1).onChange(function() {
+folder1.add(startupParameters, 'fontSize', 0, 50, 1).onChange(() => {
+  textSize(startupParameters.fontSize);
+});
+folder1.add(options, 'noiseDetail', 0, 16, 1).onChange(() => {
   options.restart();
 });
-folder1.add(options, 'noiseFallOff', 0, 1).onChange(function() {
+folder1.add(options, 'noiseFallOff', 0, 1).onChange(() => {
   options.restart();
 });
-folder1.add(options, 'seed', 0, 100000, 1).onChange(function() {
+folder1.add(options, 'seed', 0, 100000, 1).onChange(() => {
   options.restart();
 });
 
 folder1.open();
 gui.add(options, 'asciify');
+gui.add(options, 'showPixelated');
+gui.add(options, 'displaySmoothed').onChange(() => {
+  // startupParameters.resizeCanvas();
+  // thisReference.setup();
+  options.setSmoothing();
+});
 gui.add(options, 'restart');
 gui.add(options, 'save');
 
 function preload() {
-  newFont = loadFont('./../_libs/fonts/QuinqueFive.ttf', () => {
-    fontLoaded = true;
-  });
-
-  newFont = loadFont('./../_libs/fonts/KenPixel Mini.ttf', () => {
-    fontLoaded = true;
-  });
+  loadFont('./../_libs/fonts/QuinqueFive.ttf'); // https://ggbot.itch.io/quinquefive-font
+  loadFont('./../_libs/fonts/KenPixel Mini.ttf'); // https://www.kenney.nl/assets/kenney-fonts
+  loadFont('./../_libs/fonts/pocod.ttf'); // https://dezuhan.itch.io/pocod-pixel-font
 }
 
 function setup() {
   thisReference = this;
   startupParameters.resizeCanvas();
   options.restart();
+  options.setSmoothing();
+  textFont('QuinqueFive', startupParameters.fontSize);
+  textStyle(NORMAL);
+  textAlign(CENTER, CENTER);
+  // asciiInstance.printWeightTable();
 }
 
 function draw() {
@@ -147,14 +158,11 @@ function drawOrOverdrawAsAscii() {
   // copy full image to ascii mini canvas
   gfx2ascii.image(gfx2canvas, 0, 0, startupParameters.asciiXSize, startupParameters.asciiYSize); // copy combined image to the ascii frame to process further
 
-  if (false) { // canvas that is used to turn into ascii art
+  if (options.showPixelated) { // canvas that is used to turn into ascii art
     image(gfx2ascii, 0, 0, startupParameters.xSize, startupParameters.ySize);
   } else {
     fill(options.foreground);
     background(options.background);
-    textFont('monospace', startupParameters.fontSize);
-    textStyle(NORMAL);
-    textAlign(CENTER, CENTER);
 
     ascii_arr = asciiInstance.convert(gfx2ascii);
     asciiInstance.typeArray2d(ascii_arr, this);
