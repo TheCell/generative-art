@@ -105,7 +105,7 @@ function draw() {
 }
 
 let angle = 0;
-let speed = 0.05;
+let speed = Math.PI / 32;
 function prepareGfxCanvas() {
   gfx.background(options.asciify ? color(0) : options.background);
   gfx.fill(options.foreground);
@@ -124,6 +124,7 @@ function prepareGfx3dCanvas() {
   gfx3d.fill(options.foreground);
   gfx3d.strokeWeight(0);
   gfx3d.torus(100, startupParameters.xSize / 15);
+  gfx3d.reset();
   gfx3d.rotateY(speed);
   gfx3d.rotateX(speed);
   gfx3d.rotateZ(speed);
@@ -157,24 +158,22 @@ function drawOrOverdrawAsAscii() {
   }
 }
 
-let count = 0;
-let saveUntilcount = 125;
+let saveUntilcount = 129;
 function saveAllFrames() {
-  if (count > saveUntilcount) {
+  if (frameCount > saveUntilcount) {
     return;
   }
-  
-  if (count > 40) {
-    options.showPixelated = true;
-    options.asciify = false;
-  }
 
-  if (count > 80) {
+  if (frameCount > 40) {
     options.showPixelated = true;
     options.asciify = true;
   }
 
-  frameRate(5);
-  saveCanvas(`${new Date().getFullYear()}_Genuary${genuaryNr}_seed-${options.seed}_frame-${count}`, 'png');
-  count++;
+  if (frameCount > 80) {
+    options.showPixelated = true;
+    options.asciify = false;
+  }
+
+  // frameRate(5);
+  // saveCanvas(`${new Date().getFullYear()}_Genuary${genuaryNr}_seed-${options.seed}_frame-${frameCount}`, 'png');
 }

@@ -6,6 +6,7 @@ let noiseVal;
 let noiseScale = 0.02;
 let fontLoaded = false;
 let thisReference;
+let genuaryNr = '05';
 
 const startupParameters = {
   xSize: 600,
@@ -41,7 +42,7 @@ const options = {
     gfx.background(options.background);
   },
   save: function () {
-    saveCanvas(`${new Date().getFullYear()}_Genuary05_seed-${options.seed}_date-${Date.now()}`, 'png');
+    saveCanvas(`${new Date().getFullYear()}_Genuary${genuaryNr}_seed-${options.seed}_date-${Date.now()}`, 'png');
   }
 }
 
@@ -100,10 +101,11 @@ function draw() {
   prepareGfxCanvas();
   prepareGfx3dCanvas();
   drawOrOverdrawAsAscii();
+  saveAllFrames();
 }
 
 let angle = 0;
-let speed = 0.05;
+let speed = Math.PI / 32;
 function prepareGfxCanvas() {
   gfx.background(options.asciify ? color(0) : options.background);
   gfx.fill(options.foreground);
@@ -122,9 +124,10 @@ function prepareGfx3dCanvas() {
   gfx3d.fill(options.foreground);
   gfx3d.strokeWeight(0);
   gfx3d.torus(100, startupParameters.xSize / 15);
-  gfx3d.rotateY(speed);
-  gfx3d.rotateX(speed);
-  gfx3d.rotateZ(speed);
+  gfx3d.reset();
+  gfx3d.rotateY(angle);
+  gfx3d.rotateX(angle);
+  gfx3d.rotateZ(angle);
 }
 
 function drawOrOverdrawAsAscii() {
@@ -153,4 +156,24 @@ function drawOrOverdrawAsAscii() {
     ascii_arr = asciiInstance.convert(gfx2ascii);
     asciiInstance.typeArray2d(ascii_arr, this);
   }
+}
+
+let saveUntilcount = 129;
+function saveAllFrames() {
+  if (frameCount > saveUntilcount) {
+    return;
+  }
+
+  if (frameCount > 40) {
+    options.showPixelated = true;
+    options.asciify = true;
+  }
+
+  if (frameCount > 80) {
+    options.showPixelated = true;
+    options.asciify = false;
+  }
+
+  // frameRate(5);
+  // saveCanvas(`${new Date().getFullYear()}_Genuary${genuaryNr}_seed-${options.seed}_frame-${frameCount}`, 'png');
 }
