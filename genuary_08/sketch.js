@@ -24,14 +24,15 @@ const startupParameters = {
     gfx2canvas = createGraphics(startupParameters.xSize, startupParameters.ySize, P2D); // graphics combinind all others and combining with ascii
     gfx2ascii = createGraphics(startupParameters.asciiXSize, startupParameters.asciiYSize, P2D); // graphics combinind all others and combining with ascii
     asciiInstance = new AsciiArt(thisReference);
-    asciiInstance.typeArray2d = typeArray2d;
   }
 }
 
 const options = {
-  background: '#415765',
-  foreground: '#5cb6f2',
-  bordercolor: '#b5fd71',
+  background: '#343434',
+  foreground: '#c86b6b',
+  bordercolor: '#ffffff',
+  asciiColor: '#eadb0d',
+  asciiBackground: '#374256',
   asciify: true,
   showPixelated: false,
   noiseDetail: 8,
@@ -65,6 +66,8 @@ gui.remember(options);
 folder1.addColor(options, 'background');
 folder1.addColor(options, 'foreground');
 folder1.addColor(options, 'bordercolor');
+folder1.addColor(options, 'asciiColor');
+folder1.addColor(options, 'asciiBackground');
 folder1.add(startupParameters, 'fontSize', 0, 50, 1).onChange(() => {
   textSize(startupParameters.fontSize);
 });
@@ -90,18 +93,25 @@ function preload() {
   loadFont('./../_libs/fonts/pocod.ttf'); // https://dezuhan.itch.io/pocod-pixel-font
 }
 
+let fontName = 'QuinqueFive';
 function setup() {
   thisReference = this;
+
   startupParameters.resizeCanvas();
   options.restart();
-  textFont('QuinqueFive', startupParameters.fontSize);
+  textFont(fontName, startupParameters.fontSize);
   textStyle(NORMAL);
   textAlign(CENTER, CENTER);
+  gfx2canvas.textFont(fontName, startupParameters.fontSize);
+  gfx2canvas.textStyle(NORMAL);
+  gfx2canvas.textAlign(CENTER, CENTER);
   // asciiInstance.printWeightTable();
 }
 
 function draw() {
-  prepareGfxCanvas();
+  if (frameCount > 2) {
+    prepareGfxCanvas();
+  }
   // prepareGfx3dCanvas();
   drawOrOverdrawAsAscii();
   // saveAllFrames();
@@ -109,8 +119,6 @@ function draw() {
 
 let angle = Math.PI;
 let speed = Math.PI / 32;
-let R = (a=1)=>Math.random()*a;
-let L = (x,y)=>(x*x+y*y)**0.5; // Elements by Euclid 300 BC
 function prepareGfxCanvas() {
   // gfx.background(options.asciify ? color(0) : options.background);
   // gfx.fill(options.foreground);
@@ -120,8 +128,8 @@ function prepareGfxCanvas() {
   // let y = startupParameters.ySize/2 + sin(angle) * (startupParameters.ySize / 3);
   // gfx.ellipse(x, y, 100, 100);
 
-  for (let k = 0; k < 1000; k++) {
-    let p = [R(2)-1, R(2)-1];
+  for (let k = 0; k < 2000; k++) {
+    let p = [random(-1, 1), random(-1, 1)]; // get random point
     let d = sdf(p);
     let col = options.bordercolor;
     if (d < -.01) col = options.foreground;
@@ -154,7 +162,6 @@ function drawOrOverdrawAsAscii() {
     return;
   }
   
-  gfx2canvas.image(gfx3d, 0, 0, startupParameters.xSize, startupParameters.ySize);
   // gfx2canvas.filter(THRESHOLD);
   gfx2canvas.filter(GRAY);
   // gfx2canvas.filter(POSTERIZE, 3);
@@ -165,34 +172,25 @@ function drawOrOverdrawAsAscii() {
   if (options.showPixelated) { // canvas that is used to turn into ascii art
     image(gfx2ascii, 0, 0, startupParameters.xSize, startupParameters.ySize);
   } else {
-    fill(options.foreground);
-    background(options.background);
+    fill(options.asciiColor);
+    background(options.asciiBackground);
 
     ascii_arr = asciiInstance.convert(gfx2ascii);
     asciiInstance.typeArray2d(ascii_arr, this);
   }
 }
 
-let saveUntilcount = 129;
+let saveUntilcount = 122;
 function saveAllFrames() {
   if (frameCount > saveUntilcount) {
     return;
   }
 
-  if (frameCount > 40) {
-    options.showPixelated = true;
-    options.asciify = true;
-  }
-
-  if (frameCount > 80) {
-    options.showPixelated = true;
-    options.asciify = false;
-  }
-
-  // frameRate(5);
-  // saveCanvas(`${new Date().getFullYear()}_Genuary${genuaryNr}_seed-${options.seed}_frame-${frameCount}`, 'png');
+  frameRate(5);
+  saveCanvas(`${new Date().getFullYear()}_Genuary${genuaryNr}_seed-${options.seed}_frame-${frameCount}`, 'png');
 }
 
+let L = (x,y)=>(x*x+y*y)**0.5; // Elements by Euclid 300 BC
 
 // see https://www.youtube.com/watch?v=KRB57wyo8_4
 // and https://iquilezles.org/articles/distfunctions2d/
@@ -207,13 +205,26 @@ function sdf_circle([x,y], [cx,cy], r) {
   return L(x, y) - r;
 }
 
+let k = (a,b) => a > 0 && b > 0 ? L(a,b) : a > b ? a : b; // edge function
 function sdf_box([x,y], [cx,cy], [w,h]) {
   x -= cx;
   y -= cy;
   return k(abs(x)-w, abs(y)-h);  
 }
 
-let k = (a,b) => a > 0 && b > 0 ? L(a,b) : a > b ? a : b;
+function moon([x,y], [cx,cy], d, ra, rb) { // https://iquilezles.org/articles/distfunctions2d/
+  x -= cx;
+  y -= cy;
+  y = Math.abs(y);
+  let a = (ra*ra - rb*rb + d*d)/(2.0*d);
+  let b = Math.sqrt(max(ra*ra-a*a, 0.0));
+
+  if (d*(x*b-y*a) > d*d*max(b-y, 0.0)) {
+    return L(x-a, y-b);
+  }
+
+  return max(L(x,y)-ra, -L(x-d, y)-rb);
+}
 
 function sdf_rep(x, r) {
   x/=r;
@@ -229,62 +240,15 @@ function sdf([x,y]) {
   // bal = abs(bal) - .1;
   // bal = abs(bal) - .05;
   // x = abs(x) - .5;
-  let bal = abs(sdf_rep(sdf_circle([x,y], [-.2,0], .1),.2))-.05;
-  let bbl = abs(sdf_rep(sdf_circle([x,y], [.2,0], .1),.2))-.05;
-  return max(bal, bbl);
+  // let mo = moon([x,y], [-.2,0], .2, .2, -.25);
+  let mo1 = abs(sdf_rep(moon([x,y], [.2,-.1], .2, .2, -.25),.2))-.05;
+  // let mo2 = abs(sdf_rep(moon([x,y], [-.2,0], -.2, -.2, .25),-.2))-.05;
+  // return (moon([x,y], [.2,0], -.2, .2, -.25));
+  let mo2 = abs(sdf_rep(moon([x,y], [-.5,.3], -.2, .2, -.25),-.2))-.05;
+  return max (mo1, mo2);
+  // let bal = abs(sdf_rep(sdf_circle([x,y], [-.2,0], .1),.2))-.05;
+  // let bbl = abs(sdf_rep(sdf_circle([x,y], [.2,0], .1),.2))-.05;
+  // let box = abs(sdf_rep(sdf_box([x,y], [.2,0], [.1, .2]),.2))-.05;
+  // return box;
+  // return max(box, bal);
 }
-
-typeArray2d = function(_arr2d, _dst, _x, _y, _w, _h) {
-  if(_arr2d === null) {
-    console.log('[typeArray2d] _arr2d === null');
-    return;
-  }
-  if(_arr2d === undefined) {
-    console.log('[typeArray2d] _arr2d === undefined');
-    return;
-  }
-  switch(arguments.length) {
-    case 2: _x = 0; _y = 0; _w = width; _h = height; break;
-    case 4: _w = width; _h = height; break;
-    case 6: /* nothing to do */ break;
-    default:
-      console.log(
-        '[typeArray2d] bad number of arguments: ' + arguments.length
-      );
-      return;
-  }
-  /*
-    Because Safari in macOS seems to behave strangely in the case of multiple
-    calls to the p5js text(_str, _x, _y) method for now I decided to refer
-    directly to the mechanism for handling the canvas tag through the "pure"
-    JavaScript.
-  */
-  if(_dst.canvas === null) {
-    console.log('[typeArray2d] _dst.canvas === null');
-    return;
-  }
-  if(_dst.canvas === undefined) {
-    console.log('[typeArray2d] _dst.canvas === undefined');
-    return;
-  }
-  var temp_ctx2d = _dst.canvas.getContext('2d');
-  if(temp_ctx2d === null) {
-    console.log('[typeArray2d] _dst canvas 2d context is null');
-    return;
-  }
-  if(temp_ctx2d === undefined) {
-    console.log('[typeArray2d] _dst canvas 2d context is undefined');
-    return;
-  }
-  var dist_hor = _w / _arr2d.length;
-  var dist_ver = _h / _arr2d[0].length;
-  var offset_x = _x + dist_hor * 0.5;
-  var offset_y = _y + dist_ver * 0.5;
-  for(var temp_y = 0; temp_y < _arr2d[0].length; temp_y++)
-    for(var temp_x = 0; temp_x < _arr2d.length; temp_x++)
-      /*text*/temp_ctx2d.fillText(
-        _arr2d[temp_x][temp_y],
-        offset_x + temp_x * dist_hor,
-        offset_y + temp_y * dist_ver
-    );
-  }
