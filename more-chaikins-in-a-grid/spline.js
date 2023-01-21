@@ -53,12 +53,17 @@ function createSpline(bg) {
         nextCell = selectSpiralingCell(xCells, yCells, previousCellX, previousCellY, prepreviousCellX, prepreviousCellY, i);
       } else if (options.cellSelection === CellSelectionAlgorithm.LowerRightHalf) {
         nextCell = selectCellInLowerRightHalf(xCells, yCells);
-      } else if (options.cellSelection === CellSelectionAlgorithm.EmergeFromACenter) {
+      } else if (options.cellSelection === CellSelectionAlgorithm.EmergeFromACenter || options.cellSelection === CellSelectionAlgorithm.EmergeFromCenters) {
+        // only the defaults differ
         nextCell = emergeFromACenter(xCells, yCells, previousCellX, previousCellY, previousSpline, splineIndex);
       } else if (options.cellSelection === CellSelectionAlgorithm.EmergeFromACorner) {
         nextCell = emergeFromACorner(xCells, yCells, previousCellX, previousCellY);
       } else if (options.cellSelection === CellSelectionAlgorithm.EmergeFromACornerButDontStopAtBorders) {
         nextCell = emergeFromACornerButDontStopAtBorders(xCells, yCells, previousCellX, previousCellY);
+      } else if (options.cellSelection === CellSelectionAlgorithm.EmergeFromTwoCorners) {
+        var left = false;
+        var top = splineIndex %2 == 1 ? true : false;
+        nextCell = emergeFromACorner(xCells, yCells, previousCellX, previousCellY, left, top);
       }
   
       if (!nextCell) {

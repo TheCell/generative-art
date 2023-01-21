@@ -10,7 +10,10 @@ var colorPalettes = [
   ['#FDEEDC', '#FFD8A9', '#F1A661', '#E38B29'],
   ['#E3FDFD', '#CBF1F5', '#A6E3E9', '#71C9CE'],
   ['#F9ED69', '#F08A5D', '#B83B5E', '#6A2C70'],
-  ['#2D4059', '#EA5455', '#F07B3F', '#FFD460']
+  ['#2D4059', '#EA5455', '#F07B3F', '#FFD460'],
+  ['#555555'],
+  ['#3D1766', '#6F1AB6', '#FF0032', '#CD0404'],
+  ['#F5EDCE', '#89C4E1', '#58287F', '#1A0000']
 ];
 const startupParameters = {
   xSize: 400,//650,//600,
@@ -21,7 +24,6 @@ const startupParameters = {
     pixelDensity(1);
     
     gfx = createGraphics(startupParameters.xSize, startupParameters.ySize)
-    gfx.background(options.background);
   }
 }
 
@@ -37,25 +39,23 @@ function createGrid() {
 }
 
 const options = {
-  background: '#212121',
-  foreground: '#ffae23',
-  drawBackgroundSplines: false,
+  background: Background.Colored,
   numberOfSplines: 20,
   numberOfPoints: 5,
   splineColorPalette: 0,
   randomColors: false,
+  playColors: false,
   gridSizeX: 10,
   gridSizeY: 16,
   cellSize: 40,
   drawGrid: false,
   gridSelectionAlgorithm: 1,
-  cellSelection: 'Random',
+  cellSelection: CellSelectionAlgorithm.EmergeFromACenter,
   restart: function () {
-    seed = Math.random() * 100000; //91726.74312319404; //40396.04204047813;
+    seed = Math.random() * 100000;//82973.367241122;// //91726.74312319404; //40396.04204047813;
     randomSeed(seed);
     noiseSeed(seed);
     gfx.reset();
-    gfx.background(options.background);
 
     createGrid();
     splines = [];
@@ -69,6 +69,13 @@ const options = {
       splines.push(createSplineInGrid(previousSpline, i));
     }
 
+    if (options.playColors) {
+      frameRate(1);
+      options.splineColorPalette = (options.splineColorPalette + 1) % colorPalettes.length;
+    } else {
+      frameRate(30);
+    }
+
     loop();
   },
   save: function () {
@@ -78,6 +85,7 @@ const options = {
     document.getElementById('fileselector').click();
   }
 }
+updateAlgorithmDefaults();
 
 // Creating a GUI with options.
 var gui = new dat.GUI({name: 'Customization'});
@@ -89,17 +97,18 @@ startupParameterFolder.add(startupParameters, 'resizeCanvas');
 var folder1 = gui.addFolder('Setup options');
 gui.remember(options);
 //folder1.add(options, 'loadImage');
-folder1.add(options, 'cellSelection', Object.values(CellSelectionAlgorithm)).onChange(() => { updateAlgrithmDefaults(); options.restart(); });
-folder1.add(options, 'numberOfSplines', 1, 100, 1).listen();
+folder1.add(options, 'cellSelection', Object.values(CellSelectionAlgorithm)).onChange(() => { updateAlgorithmDefaults(); options.restart(); });
+folder1.add(options, 'numberOfSplines', 1, 1000, 1).listen();
 folder1.add(options, 'numberOfPoints', 5, 100, 5).listen();
-folder1.add(options, 'splineColorPalette', 0, colorPalettes.length-1, 1);
+folder1.add(options, 'splineColorPalette', 0, colorPalettes.length-1, 1).listen();
 folder1.add(options, 'randomColors');
-folder1.add(options, 'drawBackgroundSplines');
+folder1.add(options, 'playColors');
+folder1.add(options, 'background', Object.values(Background)).onChange(() => { options.restart(); });
 folder1.open();
 var folder2 = gui.addFolder('Grid options');
-folder2.add(options, 'gridSizeX', 5, 50, 1);
-folder2.add(options, 'gridSizeY', 5, 50, 1);
-folder2.add(options, 'cellSize', 5, 50, 5);
+folder2.add(options, 'gridSizeX', 5, 50, 1).listen();
+folder2.add(options, 'gridSizeY', 5, 50, 1).listen();
+folder2.add(options, 'cellSize', 5, 50, 5).listen();
 folder2.add(options, 'drawGrid');
 gui.add(options, 'restart');
 gui.add(options, 'save');
@@ -114,14 +123,16 @@ function draw() {
   background(255, 255, 255);
   
   strokeWeight(1);
-  if (options.drawBackgroundSplines) {
+  if (options.background === Background.Curves) {
     for (var s=0; s<backgroundSplines.length; s++) {
       drawSpline(backgroundSplines[s], colorPalettes[1]);
     }
+  } else {
+    drawBackground();
   }
   
   for (var s=0; s<splines.length; s++) {
-    var palette = getSplinePalette();
+    var palette = getSplinePalette(s);
     drawSpline(splines[s], palette);
   }
 
@@ -132,9 +143,13 @@ function draw() {
       }
     }
   }
+
+  if (options.playColors) {
+    options.restart();
+  }
 }
 
-function getSplinePalette() {
+function getSplinePalette(splineIndex) {
   if (options.randomColors) {
     return colorPalettes[Math.floor(random()*colorPalettes.length)];
   } else {
@@ -142,10 +157,10 @@ function getSplinePalette() {
   }
 }
 
-function drawSpline(spline, colorPalette) {
+function drawSpline(spline, colorPalette, alpha = 50) {
   var points = spline.points;
   var c = color(colorPalette[Math.floor(random()*colorPalette.length)]);
-  c.setAlpha(50);
+  c.setAlpha(alpha);
   stroke(0, 0, 0, 50);
   fill(c);
   
