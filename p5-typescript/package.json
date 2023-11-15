@@ -19,6 +19,8 @@
     "webpack-dev-server": "^4.15.1"
   },
   "dependencies": {
+    "@types/dat.gui": "^0.7.12",
+    "dat.gui": "^0.7.9",
     "p5": "^1.8.0"
   }
 }

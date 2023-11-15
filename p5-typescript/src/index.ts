@@ -1,8 +1,10 @@
 import * as p5 from 'p5';
+import * as datgui from 'dat.gui';
 
 export const sketch = (p: p5) => {
     p.setup = () => {
         p.createCanvas(400, 400);
+        const gui = new datgui.GUI();
     }
 
     p.draw = () => {
